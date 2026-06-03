@@ -5,4 +5,109 @@ The NYC TLC Trip Record Data is fully public at https://www.nyc.gov/site/tlc/abo
 Why this project covers everything
 The raw data is intentionally messy — schema changes across years (column renames, added/dropped fields), duplicate rows, nulls in key columns, nonsensical values (negative fares, trips ending before they started), and no foreign-key enrichment. This forces you to implement every transformation class: structural fixes, joins across sources, window functions, geospatial logic, SCD2 for zone changes, and incremental loading so you're not reprocessing 200M rows on every run.
 The stretch goal — building a fare-surge prediction feature store — then pulls in aggregation, lag features, and partitioned writes, rounding out the ML engineering side.
-Want me to lay out the full schema design, the Airflow DAG structure, or dbt model hierarchy for any of these layers?
+Data sources
+
+TLC Trip Records
+
+Yellow & green taxi + FHV. 2009–present. ~10M rows/month.
+
+Taxi Zone Lookup
+
+265 zones with borough, service area, GeoJSON shapes.
+
+NOAA Weather API
+
+Hourly temp, precipitation, wind per Central Park station.
+
+NYC Public Holidays
+
+Holiday calendar for surge pricing analysis.
+
+Pipeline stages
+
+① Ingest
+→
+② Validate
+→
+③ Bronze (raw)
+→
+④ Silver (clean)
+→
+⑤ Gold (aggregated)
+→
+⑥ Serve / Viz
+Transformations covered
+
+Deduplication
+
+Remove duplicate trip IDs introduced by upstream retries.
+
+Null handling & imputation
+
+Fill missing passenger counts, infer borough from GPS.
+
+Type casting & parsing
+
+Unify date formats across CSV/Parquet sources (schema drift).
+
+Filtering & outlier removal
+
+Drop trips with negative fares, zero distance, or 200+ mph speeds.
+
+Joins (multi-source)
+
+Enrich trips with zone names, weather conditions, and holiday flags.
+
+Aggregations & window functions
+
+Rolling 7-day revenue, hourly demand by zone, peak-hour ranking.
+
+Slowly Changing Dimensions
+
+Track zone boundary changes (SCD Type 2) over time.
+
+Geospatial transforms
+
+Haversine distance validation; zone polygon point-in-polygon check.
+
+Pivot / unpivot
+
+Wide-to-long payment breakdown (cash, card, no charge).
+
+Derived columns
+
+Tip %, speed (mph), time-of-day bucket, day-of-week label.
+
+Incremental / CDC loading
+
+Process only new months via watermark or Hudi/Delta merge.
+
+ML feature engineering
+
+Lag features, rolling averages for surge-price prediction model.
+
+Suggested tech stack
+
+Orchestration
+
+Apache Airflow or Prefect for DAG-based scheduling.
+
+Processing
+
+PySpark / Spark SQL on EMR, Databricks, or local cluster.
+
+Storage
+
+S3/GCS in Parquet (Delta Lake or Apache Hudi for ACID).
+
+Transformation
+
+dbt for Silver→Gold SQL transformations with tests.
+
+Warehouse
+
+Snowflake, BigQuery, or DuckDB for analytical queries.
+
+Visualization
+
+Metabase, Grafana, or Superset for dashboards.
