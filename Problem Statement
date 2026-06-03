@@ -1,0 +1,8 @@
+Problem statement
+NYC's Taxi & Limousine Commission releases raw trip data with inconsistent schemas, missing fields, and no enrichment. Your job is to build a production-grade pipeline that ingests 200M+ records across 15 years, cleans and standardizes them, enriches with weather and zone context, detects pricing anomalies, and serves a star-schema warehouse that powers operational dashboards and a surge-pricing ML model.
+Where to get the data
+The NYC TLC Trip Record Data is fully public at https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page — Yellow Taxi alone has Parquet files from 2009 through today, which puts you comfortably above 100M rows. Download 2–3 years to start; the full dataset is 200M+.
+Why this project covers everything
+The raw data is intentionally messy — schema changes across years (column renames, added/dropped fields), duplicate rows, nulls in key columns, nonsensical values (negative fares, trips ending before they started), and no foreign-key enrichment. This forces you to implement every transformation class: structural fixes, joins across sources, window functions, geospatial logic, SCD2 for zone changes, and incremental loading so you're not reprocessing 200M rows on every run.
+The stretch goal — building a fare-surge prediction feature store — then pulls in aggregation, lag features, and partitioned writes, rounding out the ML engineering side.
+Want me to lay out the full schema design, the Airflow DAG structure, or dbt model hierarchy for any of these layers?
